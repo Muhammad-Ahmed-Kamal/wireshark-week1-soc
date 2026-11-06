@@ -1,12 +1,14 @@
-What a Wireshark capture of my own laptop taught me about SOC work
+# What a Wireshark capture of my own laptop taught me about SOC work
 
 *Week 1 of my 90-day SOC analyst plan*
+
+By **Muhammad Ahmed Kamal** · [GitHub](https://github.com/Muhammad-Ahmed-Kamal)
 
 I spent my first week on networking fundamentals. The most useful part
 wasn't a course room. It was capturing my own traffic on a normal home
 network and asking what each pattern meant.
 
-1\. HTTPS hides content, not destinations
+## 1. HTTPS hides content, not destinations
 
 I visited a plain-HTTP test site (neverssl.com) and an HTTPS site in the
 same capture. Chrome itself warned me before sending anything.
@@ -24,12 +26,12 @@ shows.
 ***Figure 2.** The neverssl.com page as rendered by Chrome, flagged "Not
 secure".*
 
-Filtering for http showed the request and the server's reply as plain,
+Filtering for `http` showed the request and the server's reply as plain,
 readable packets.
 
 ![Wireshark packet list filtered to HTTP showing a GET and an HTTP 200 OK](fig03.png)
 
-***Figure 3.** The http filter: a GET request and the server's 200 OK
+***Figure 3.** The `http` filter: a GET request and the server's 200 OK
 response.*
 
 ![Wireshark HTTP packet list with GET, 301 Moved Permanently and 200 OK responses](fig04.png)
@@ -63,15 +65,15 @@ server packet, 1 turn.*
 ***Figure 8.** Raw bytes of the GET request: Host, User-Agent and Accept
 headers, all in cleartext.*
 
-By contrast, the same http filter on a browsing session that was
+By contrast, the same `http` filter on a browsing session that was
 entirely HTTPS returned nothing to read.
 
 ![Wireshark with http filter applied and an empty packet list](fig09.png)
 
-***Figure 9.** The http filter during an HTTPS-only session: empty.*
+***Figure 9.** The `http` filter during an HTTPS-only session: empty.*
 
 For the HTTPS connections, the content was encrypted. But filtering on
-tls.handshake.type==1 showed the destination domain of every connection
+`tls.handshake.type==1` showed the destination domain of every connection
 in the ClientHello's SNI field, sent in plaintext. A SOC can log or
 block by domain without decrypting anything, and an unfamiliar domain is
 a natural place to start an investigation.
@@ -81,7 +83,7 @@ a natural place to start an investigation.
 ***Figure 10.** TLS ClientHello packets: the SNI field names each
 destination even though the sessions are encrypted.*
 
-2\. A top talker isn't automatically suspicious
+## 2. A top talker isn't automatically suspicious
 
 In Statistics → Conversations, the Ethernet tab was dominated by one
 pair: my machine and my router, which makes sense because everything
@@ -112,14 +114,14 @@ beaconing).
 ***Figure 13.** Conversations, IPv6 tab sorted by bytes: the top talker
 is long-lived but low-volume.*
 
-3\. DNS visibility is shrinking
+## 3. DNS visibility is shrinking
 
-My dns filter showed queries and responses, each response paired to its
+My `dns` filter showed queries and responses, each response paired to its
 query by transaction ID, and some responses carrying several answers.
 
 ![Wireshark packet list filtered to DNS](fig14.png)
 
-***Figure 14.** The dns filter: standard queries and their responses.*
+***Figure 14.** The `dns` filter: standard queries and their responses.*
 
 ![Wireshark packet details showing UDP and DNS layers](fig15.png)
 
@@ -144,10 +146,10 @@ behavior and compare against a different network.
 
 ![Wireshark packet list filtered to TCP retransmissions](fig17.png)
 
-***Figure 17.** tcp.analysis.retransmission: repeated retransmissions on
+***Figure 17.** `tcp.analysis.retransmission`: repeated retransmissions on
 port 53.*
 
-4\. Know your tooling's quirks
+## 4. Know your tooling's quirks
 
 About two-thirds of my packets showed up under an 802.1Q VLAN tag, on a
 home network with no VLANs. This is most likely an artifact of the
@@ -174,7 +176,7 @@ the capture was running.*
 
 ![Wireshark with arp filter applied and an empty packet list](fig21.png)
 
-***Figure 21.** The arp filter on that capture: empty.*
+***Figure 21.** The `arp` filter on that capture: empty.*
 
 With the capture started first, the ARP broadcasts showed up. Wireshark
 only sees what happens while it's recording.
@@ -184,12 +186,12 @@ only sees what happens while it's recording.
 ***Figure 22.** Capture started first: ARP "Who has ...? Tell ..."
 broadcasts.*
 
-Filters I'm adding to my toolkit
+## Filters I'm adding to my toolkit
 
-contains, matches (regex), in (e.g. tcp.port in {80 443 8080}), and
-upper()/lower() for case-insensitive hunting, which are what you reach
+`contains`, `matches` (regex), `in` (e.g. `tcp.port in {80 443 8080}`), and
+`upper()`/`lower()` for case-insensitive hunting, which are what you reach
 for when you have a vague lead instead of an exact value.
 
-Next
+## Next
 
 Week 2: Windows event logs and Sysmon.
